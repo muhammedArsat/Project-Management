@@ -9,7 +9,7 @@ const routes = Router();
 
 routes.post("/signup", upload.single("profile"), signup);
 routes.post("/signin", signin);
-routes.post("/refresh-token", refreshToken);
+routes.post("/refresh", refreshToken);
 routes.get('/user',protectedMiddleware,userProfile)
 routes.post('/signout',signout)
 routes.get(

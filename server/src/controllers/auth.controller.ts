@@ -142,8 +142,17 @@ export const refreshToken = async (
           profile: decoded.profile,
           role: decoded.role,
         };
-
+        const refreshToken = generateRefreshToken(JwtPayload);
         const accessToken = generateAccessToken(JwtPayload);
+
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: NODE_ENV === "production",
+          sameSite: "strict",
+          path: "/",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
         return res.status(200).json({
           success: true,
           accessToken,
@@ -171,7 +180,6 @@ export const userProfile = (req: any, res: Response) => {
 //@ /api/v1/auth/signout
 //@ desc to clear refresh token
 //@public
-
 export const signout = (req: Request, res: Response) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
@@ -180,7 +188,7 @@ export const signout = (req: Request, res: Response) => {
     path: "/",
   });
   return res.status(200).json({
-    success:true,
-    message:"signed out successfully"
-  })
+    success: true,
+    message: "signed out successfully",
+  });
 };
