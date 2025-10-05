@@ -11,5 +11,88 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("POSTGRES_URL")
+}
+
+
+model User {
+  id             Int             @id @default(autoincrement())
+  name           String
+  email          String          @unique
+  passwordHash   String?
+  profile        String?
+  role           Role            @default(MEMBER)
+  projectsOwned  Project[]       @relation("ProjectOwner")
+  projectMembers ProjectMember[]
+  tasks          Task[]          @relation("AssignedTasks")
+  filesUploaded  File[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Project {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String?
+  ownerId     Int
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members     ProjectMember[]
+  tasks       Task[]
+  files       File[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model ProjectMember {
+  id        Int       @id @default(autoincrement())
+  projectId Int
+  userId    Int
+  role      Role      @default(MEMBER)
+  project   Project   @relation(fields: [projectId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  @@unique([projectId, userId])
+}
+
+model Task {
+  id         Int          @id @default(autoincrement())
+  title      String
+  description String?
+  projectId  Int
+  assignedTo Int?
+  status     TaskStatus   @default(TODO)
+  priority   TaskPriority @default(MEDIUM)
+  deadline   DateTime?
+  project    Project      @relation(fields: [projectId], references: [id])
+  assignee   User?        @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model File {
+  id         Int       @id @default(autoincrement())
+  projectId  Int
+  uploaderId Int
+  fileUrl    String
+  fileType   String
+  project    Project   @relation(fields: [projectId], references: [id])
+  uploader   User      @relation(fields: [uploaderId], references: [id])
+  createdAt  DateTime  @default(now())
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+enum TaskStatus {
+  TODO
+  PROGRESS
+  COMPLETED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
 }
