@@ -1,7 +1,9 @@
+import Routepaths from "./routes/Routepaths";
+
 const App = () => {
   return (
     <div>
-      <h1>Bismillah</h1>
+      <Routepaths />
     </div>
   );
 };
