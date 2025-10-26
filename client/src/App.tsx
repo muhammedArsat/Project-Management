@@ -1,10 +1,12 @@
+import ThemeProvider from "./providers/ThemeProvider";
 import Routepaths from "./routes/Routepaths";
-
+import { Toaster } from "react-hot-toast";
 const App = () => {
   return (
-    <div>
+    <ThemeProvider>
       <Routepaths />
-    </div>
+      <Toaster position="top-right" />
+    </ThemeProvider>
   );
 };
 

@@ -187,6 +187,13 @@ export const signout = (req: Request, res: Response) => {
     sameSite: "strict",
     path: "/",
   });
+
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
   return res.status(200).json({
     success: true,
     message: "signed out successfully",

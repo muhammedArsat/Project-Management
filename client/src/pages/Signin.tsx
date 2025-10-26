@@ -1,21 +1,72 @@
 import SignInIcon from "../assets/signin-icon.svg";
 import GoogleIcon from "../assets/google-icon.svg";
 import { Mail, LockIcon, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Loader from "../components/Loader";
+import { useMutation } from "@tanstack/react-query";
+import { signIn } from "../apis/auth.apis";
+import toast from "react-hot-toast";
+// import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // const navigate = useNavigate();
+  const [passwordError, setPasswordError] = useState("");
+  const [authForm, setAuthForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const mutation = useMutation({
+    mutationFn: signIn,
+    onSuccess: (data) => {
+      toast.success(data.data.message);
+      // console.log(data.data.message)
+    },
+
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Sign in failed");
+    },
+  });
   const handlePasswordVisible = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
+
+  const handleSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (authForm.password.length < 6) {
+      setPasswordError("Password should be more than 6 characters");
+      return;
+    }
+
+    mutation.mutate(authForm);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAuthForm({
+      ...authForm,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleGoogleOAuth = () => {
+    console.log(`${import.meta.env.VITE_SERVER_URL}/auth/google`);
+    window.location.href = `${
+      import.meta.env.VITE_SERVER_URL
+    }/auth/google`;
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      setPasswordError("");
+    }, 2000);
+  }, [passwordError]);
   return (
     <div className="flex items-center p-2 md:p-0 justify-center min-h-svh ">
       <div className="flex flex-col space-y-2 p-2 absolute left-0 top-2">
         <h1 className="md:text-white">Team Spark</h1>
         <h5 className="md:text-neutral-100 pl-2">Plan. Track. Achieve</h5>
       </div>
-      <div className="hidden md:flex flex-col space-y-4 justify-center items-center  bg-action min-h-screen basis-7/12 rounded-r-lg shadow-xl text-white">
+      <div className="hidden lg:flex flex-col space-y-4 justify-center items-center  bg-action min-h-screen basis-7/12 rounded-r-lg shadow-xl text-white">
         <h3 className="text-center px-4">
           Sign in to access your projects, collaborate with your team, and keep
           every task organized and efficient.
@@ -23,7 +74,7 @@ const Login = () => {
         <img src={SignInIcon} alt="signin icon" className="h-92" />
       </div>
       <form
-        onSubmit={() => setIsLoading(!isLoading)}
+        onSubmit={handleSignIn}
         className="flex flex-col shadow-xl space-y-4 p-4 rounded-lg md:rounded-none justify-center items-center md:min-h-screen md:basis-5/12 "
       >
         <h3>Login</h3>
@@ -34,7 +85,10 @@ const Login = () => {
         <div className="input-box w-full md:w-[70%]">
           <label htmlFor="email">Email</label>
           <input
-            type="text"
+            type="email"
+            name="email"
+            value={authForm.email}
+            onChange={handleChange}
             className="input-base"
             placeholder="E.g, example@gmail.com"
             required
@@ -47,6 +101,9 @@ const Login = () => {
           <label htmlFor="password">Password</label>
           <input
             type={isPasswordVisible ? "text" : "password"}
+            name="password"
+            value={authForm.password}
+            onChange={handleChange}
             className="input-base"
             placeholder="Password"
             required
@@ -69,9 +126,9 @@ const Login = () => {
           <button
             type="submit"
             className="action-button w-full"
-            onClick={() => setIsLoading(!isLoading)}
+            disabled={mutation.status === "pending"}
           >
-            {isLoading ? <Loader /> : " Sign In"}
+            {mutation.status === "pending" ? <Loader /> : "Sign in"}
           </button>
         </div>
         <div className="w-full md:w-[70%] flex justify-end">
@@ -81,7 +138,7 @@ const Login = () => {
         </div>
 
         <div className="w-full md:w-[70%] flex justify-center items-center border rounded-lg p-2 hover:bg-neutral-300 dark:hover:bg-neutral-700 cursor-pointer border-neutral-200 transition-all">
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2" onClick={handleGoogleOAuth}>
             <img src={GoogleIcon} alt="google icon" className="w-7 h-7" />
             Sign in with Google
           </span>
